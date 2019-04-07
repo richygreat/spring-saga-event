@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: micro-event
+  main:
+    banner-mode: "off"
+  rabbitmq:
+    host: crocodile.rmq.cloudamqp.com
+    username: lugnrwzk
+    password: Cx7w0jwq9onhJTLZU4JbLLAQHew9QwOi
+    virtual-host: lugnrwzk
