@@ -27,7 +27,7 @@ public class TestFailureService {
 	@SagaTransition(name = "ShippingCreated", previousEvent = "RecordCreated", nextEvent = "DHLPickupDone")
 	public String handleRecordCreatedAndDHLPickup(String message) {
 		log.info("handleRecordCreatedAndDHLPickup: message: {}", message);
-		throw new RuntimeException("DHLPickupFailed");
+		return message;
 	}
 
 	@SagaTransition(name = "ShippingCreated", previousEvent = "DHLPickupDone", nextEvent = "DHLDelivered")
