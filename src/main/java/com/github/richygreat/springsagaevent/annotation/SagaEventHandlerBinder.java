@@ -16,6 +16,7 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -23,6 +24,9 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public final class SagaEventHandlerBinder {
+	private static final String INVALID_BINDING_METHOD_ARGS_LENGTH = "Only 1 parameter is allowed in Saga Listener methods";
+	private static final String INVALID_BINDING_METHOD_RET_TYPE_VOID = "Return type should not be void for SagaTransition and SagaBranchStart methods";
+
 	private final AmqpAdmin amqpSagaAdmin;
 	private final TopicExchange sagaEventsExchange;
 	private final Queue sagaEventsQueue;
@@ -51,6 +55,8 @@ public final class SagaEventHandlerBinder {
 		Consumer<Object> amqpBindingConsumer = new AmqpSagaEventBindingConsumer(sagaEventHandlerMap, (bean, method) -> {
 			SagaTransition sagaTransition = AnnotationUtils.findAnnotation(method, SagaTransition.class);
 			if (sagaTransition != null) {
+				Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
+				Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
 				String sagaEvent = sagaTransition.name() + "." + sagaTransition.previousEvent();
 				return new SagaEventHandlerType(sagaEvent, bean, method, sagaTransition);
 			}
@@ -63,6 +69,7 @@ public final class SagaEventHandlerBinder {
 		Consumer<Object> amqpBindingConsumer = new AmqpSagaEventBindingConsumer(sagaEventHandlerMap, (bean, method) -> {
 			SagaEnd sagaEnd = AnnotationUtils.findAnnotation(method, SagaEnd.class);
 			if (sagaEnd != null) {
+				Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
 				String sagaEvent = sagaEnd.name() + "." + sagaEnd.previousEvent();
 				return new SagaEventHandlerType(sagaEvent, bean, method, sagaEnd);
 			}
@@ -75,6 +82,8 @@ public final class SagaEventHandlerBinder {
 		Consumer<Object> amqpBindingConsumer = new AmqpSagaEventBindingConsumer(sagaEventHandlerMap, (bean, method) -> {
 			SagaBranchStart sagaBranchStart = AnnotationUtils.findAnnotation(method, SagaBranchStart.class);
 			if (sagaBranchStart != null) {
+				Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
+				Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
 				String sagaEvent = sagaBranchStart.branchoutSagaName() + "." + sagaBranchStart.branchoutEvent();
 				return new SagaEventHandlerType(sagaEvent, bean, method, sagaBranchStart);
 			}
@@ -87,6 +96,7 @@ public final class SagaEventHandlerBinder {
 		Consumer<Object> amqpBindingConsumer = new AmqpSagaEventBindingConsumer(sagaEventHandlerMap, (bean, method) -> {
 			SagaSideStep sagaSideStep = AnnotationUtils.findAnnotation(method, SagaSideStep.class);
 			if (sagaSideStep != null) {
+				Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
 				String sagaEvent = sagaSideStep.name() + "." + sagaSideStep.previousEvent();
 				return new SagaEventHandlerType(sagaEvent, bean, method, sagaSideStep);
 			}

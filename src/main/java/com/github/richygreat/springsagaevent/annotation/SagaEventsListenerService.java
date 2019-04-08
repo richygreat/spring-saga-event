@@ -22,6 +22,8 @@ import org.springframework.core.Ordered;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +58,8 @@ public class SagaEventsListenerService implements MessageListener, InitializingB
 				Method method = sagaEventHandlerType.getMethod();
 				Object obj = sagaEventHandlerType.getBean();
 				try {
-					Object ret = method.invoke(obj, new String(message.getBody()));
+					Class<?> param0 = method.getParameterTypes()[0];
+					Object ret = method.invoke(obj, new ObjectMapper().readValue(message.getBody(), param0));
 					handleNextEvent(sagaEventHandlerType, ret);
 				} catch (Exception e) {
 					// If we have failureEvent configured we simply call it

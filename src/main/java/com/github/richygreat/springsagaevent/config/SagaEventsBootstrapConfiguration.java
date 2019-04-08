@@ -11,6 +11,8 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +37,16 @@ public class SagaEventsBootstrapConfiguration {
 	}
 
 	@Bean
-	public AmqpTemplate amqpSagaTemplate(ConnectionFactory connectionFactory) {
-		return new RabbitTemplate(connectionFactory);
+	public MessageConverter sagaJsonMessageConverter() {
+		return new Jackson2JsonMessageConverter();
+	}
+
+	@Bean
+	public AmqpTemplate amqpSagaTemplate(ConnectionFactory connectionFactory,
+			MessageConverter sagaJsonMessageConverter) {
+		RabbitTemplate amqpSagaTemplate = new RabbitTemplate(connectionFactory);
+		amqpSagaTemplate.setMessageConverter(sagaJsonMessageConverter);
+		return amqpSagaTemplate;
 	}
 
 	@Bean
