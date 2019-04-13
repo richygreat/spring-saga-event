@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.github.richygreat.springsagaevent.annotation.SagaCompensationBranchStart;
 import com.github.richygreat.springsagaevent.annotation.SagaCompensationEnd;
 import com.github.richygreat.springsagaevent.annotation.SagaEnd;
 import com.github.richygreat.springsagaevent.annotation.SagaEventHandler;
@@ -43,9 +44,21 @@ public class CreateTransferSagaService {
 		throw new RuntimeException("DebitFailed");
 	}
 
-	@SagaCompensationEnd(name = "CreateTransfer", previousEvent = "CreditFailed", finalOutcome = "TransactionFailed")
-	public void markAsCreditFailed(TransferDto dto) {
+	@SagaCompensationBranchStart(name = "CreateReversalTransfer", initEvent = "RecordCreated", branchoutSagaName = "CreateTransfer", branchoutEvent = "CreditFailed")
+	public TransferDto markAsCreditFailed(TransferDto dto) {
 		log.info("markAsCreditFailed: Entering id: {}", dto.getId());
+		return dto;
+	}
+
+	@SagaTransition(name = "CreateReversalTransfer", previousEvent = "RecordCreated", nextEvent = "DebitReversalDone")
+	public TransferDto doDebitReversal(TransferDto dto) {
+		log.info("doDebitReversal: Entering id: {}", dto.getId());
+		return dto;
+	}
+
+	@SagaEnd(name = "CreateReversalTransfer", previousEvent = "DebitReversalDone", finalOutcome = "TransactionFailed")
+	public void markReversalAsComplete(TransferDto dto) {
+		log.info("markReversalAsComplete: Entering id: {}", dto.getId());
 	}
 
 	@SagaEnd(name = "CreateTransfer", previousEvent = "CreditDone", finalOutcome = "TransferDone")
