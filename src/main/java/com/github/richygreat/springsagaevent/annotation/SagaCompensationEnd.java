@@ -6,15 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Parallel step triggered by an event from Saga. No branching is possible in
- * this.
+ * Final step after failure event
  * 
  * @author Richy
  *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SagaSideStep {
+public @interface SagaCompensationEnd {
 	String name();
 
 	String previousEvent();

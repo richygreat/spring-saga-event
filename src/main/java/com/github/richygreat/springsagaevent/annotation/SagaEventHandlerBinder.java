@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public final class SagaEventHandlerBinder {
 	private static final String INVALID_BINDING_METHOD_ARGS_LENGTH = "Only 1 parameter is allowed in Saga Listener methods";
-	private static final String INVALID_BINDING_METHOD_RET_TYPE_VOID = "Return type should not be void for SagaTransition and SagaBranchStart methods";
+	private static final String INVALID_BINDING_METHOD_RET_TYPE_VOID = "Return type should not be void for SagaTransition and SagaCompensationBranchStart methods";
 
 	private final AmqpAdmin amqpSagaAdmin;
 	private final TopicExchange sagaEventsExchange;
@@ -45,8 +45,9 @@ public final class SagaEventHandlerBinder {
 
 		bindSagaTransition(sagaEventHandlerBeans);
 		bindSagaEnd(sagaEventHandlerBeans);
-		bindSagaBranchStart(sagaEventHandlerBeans);
+		bindSagaCompensationBranchStart(sagaEventHandlerBeans);
 		bindSagaSideStep(sagaEventHandlerBeans);
+		bindSagaCompensationEnd(sagaEventHandlerBeans);
 
 		return sagaEventHandlerMap;
 	}
@@ -78,14 +79,16 @@ public final class SagaEventHandlerBinder {
 		beans.forEach(amqpBindingConsumer);
 	}
 
-	private void bindSagaBranchStart(Collection<Object> beans) {
+	private void bindSagaCompensationBranchStart(Collection<Object> beans) {
 		Consumer<Object> amqpBindingConsumer = new AmqpSagaEventBindingConsumer(sagaEventHandlerMap, (bean, method) -> {
-			SagaBranchStart sagaBranchStart = AnnotationUtils.findAnnotation(method, SagaBranchStart.class);
-			if (sagaBranchStart != null) {
+			SagaCompensationBranchStart sagaCompensationBranchStart = AnnotationUtils.findAnnotation(method,
+					SagaCompensationBranchStart.class);
+			if (sagaCompensationBranchStart != null) {
 				Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
 				Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
-				String sagaEvent = sagaBranchStart.branchoutSagaName() + "." + sagaBranchStart.branchoutEvent();
-				return new SagaEventHandlerType(sagaEvent, bean, method, sagaBranchStart);
+				String sagaEvent = sagaCompensationBranchStart.branchoutSagaName() + "."
+						+ sagaCompensationBranchStart.branchoutEvent();
+				return new SagaEventHandlerType(sagaEvent, bean, method, sagaCompensationBranchStart);
 			}
 			return null;
 		}, amqpSagaAdmin, sagaEventsQueue, sagaEventsExchange, sagaEventsDlxQueue, sagaEventsDlxExchange);
@@ -99,6 +102,19 @@ public final class SagaEventHandlerBinder {
 				Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
 				String sagaEvent = sagaSideStep.name() + "." + sagaSideStep.previousEvent();
 				return new SagaEventHandlerType(sagaEvent, bean, method, sagaSideStep);
+			}
+			return null;
+		}, amqpSagaAdmin, sagaEventsQueue, sagaEventsExchange, sagaEventsDlxQueue, sagaEventsDlxExchange);
+		beans.forEach(amqpBindingConsumer);
+	}
+
+	private void bindSagaCompensationEnd(Collection<Object> beans) {
+		Consumer<Object> amqpBindingConsumer = new AmqpSagaEventBindingConsumer(sagaEventHandlerMap, (bean, method) -> {
+			SagaCompensationEnd sagaCompensationEnd = AnnotationUtils.findAnnotation(method, SagaCompensationEnd.class);
+			if (sagaCompensationEnd != null) {
+				Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
+				String sagaEvent = sagaCompensationEnd.name() + "." + sagaCompensationEnd.previousEvent();
+				return new SagaEventHandlerType(sagaEvent, bean, method, sagaCompensationEnd);
 			}
 			return null;
 		}, amqpSagaAdmin, sagaEventsQueue, sagaEventsExchange, sagaEventsDlxQueue, sagaEventsDlxExchange);

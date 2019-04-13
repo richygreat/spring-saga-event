@@ -20,6 +20,4 @@ public @interface SagaEnd {
 	String previousEvent();
 
 	String finalOutcome();
-
-	String failureEvent() default "";
 }

@@ -12,17 +12,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.github.richygreat.springsagaevent.annotation.EnableSagaEvents;
-import com.github.richygreat.springsagaevent.service.TestFailureService;
+import com.github.richygreat.springsagaevent.service.CreateTransferSagaService;
 
 @SpringBootTest(classes = AppTest.TestConfig.class)
 @ExtendWith(SpringExtension.class)
 class AppTest {
 	@Autowired
-	private TestFailureService testService;
+	private CreateTransferSagaService testService;
 
 	@Test
 	void testOrderCreation() throws InterruptedException, IOException {
-		testService.createShipping();
+		testService.initTransfer();
 		Thread.sleep(15000);
 	}
 

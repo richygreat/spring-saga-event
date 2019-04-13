@@ -119,9 +119,10 @@ public class SagaEventsListenerService implements MessageListener, InitializingB
 	}
 
 	private void handleNextEvent(SagaEventHandlerType sagaEventHandlerType, Object ret) {
-		if (SagaBranchStart.class.equals(sagaEventHandlerType.getAnnotation().annotationType())) {
-			SagaBranchStart sagaBranchStart = (SagaBranchStart) sagaEventHandlerType.getAnnotation();
-			String eventName = sagaBranchStart.name() + "." + sagaBranchStart.initEvent();
+		if (SagaCompensationBranchStart.class.equals(sagaEventHandlerType.getAnnotation().annotationType())) {
+			SagaCompensationBranchStart sagaCompensationBranchStart = (SagaCompensationBranchStart) sagaEventHandlerType
+					.getAnnotation();
+			String eventName = sagaCompensationBranchStart.name() + "." + sagaCompensationBranchStart.initEvent();
 			amqpSagaTemplate.convertAndSend("SagaEvents", eventName, ret);
 		} else if (SagaTransition.class.equals(sagaEventHandlerType.getAnnotation().annotationType())) {
 			SagaTransition sagaTransition = (SagaTransition) sagaEventHandlerType.getAnnotation();

@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SagaBranchStart {
+public @interface SagaCompensationBranchStart {
 	String name();
 
 	String branchoutSagaName();
@@ -21,6 +21,4 @@ public @interface SagaBranchStart {
 	String branchoutEvent();
 
 	String initEvent();
-
-	String failureEvent() default "";
 }
