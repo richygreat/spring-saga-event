@@ -68,6 +68,7 @@ public final class SagaEventHandlerBinder {
 					SagaTransition ann = AnnotationUtils.findAnnotation(method, SagaTransition.class);
 					if (ann != null) {
 						validate(method);
+						Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
 						String sagaEvent = ann.name() + "." + ann.previousEvent();
 						return new SagaEventHandlerType(sagaEvent, bean, method, ann,
 								method.getParameterTypes()[0].getAnnotation(EventPayload.class));
@@ -99,6 +100,7 @@ public final class SagaEventHandlerBinder {
 							SagaCompensationBranchStart.class);
 					if (ann != null) {
 						validate(method);
+						Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
 						String sagaEvent = ann.branchoutSagaName() + "." + ann.branchoutEvent();
 						return new SagaEventHandlerType(sagaEvent, bean, method, ann,
 								method.getParameterTypes()[0].getAnnotation(EventPayload.class));
@@ -142,7 +144,6 @@ public final class SagaEventHandlerBinder {
 		Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
 		Assert.isTrue(method.getParameterTypes()[0].isAnnotationPresent(EventPayload.class),
 				INVALID_BINDING_METHOD_ARGS_TYPE);
-		Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
 	}
 
 	public static class KafkaSagaEventBindingConsumer implements Consumer<Object> {

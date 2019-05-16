@@ -4,7 +4,9 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.github.richygreat.springsagaevent.annotation.SagaEnd;
 import com.github.richygreat.springsagaevent.annotation.SagaEventHandler;
+import com.github.richygreat.springsagaevent.annotation.SagaSideStep;
 import com.github.richygreat.springsagaevent.annotation.SagaStart;
 import com.github.richygreat.springsagaevent.annotation.SagaTransition;
 import com.github.richygreat.springsagaevent.model.UserDTO;
@@ -26,9 +28,13 @@ public class UserService {
 		return userDTO;
 	}
 
-	@SagaTransition(name = "UserCreated", previousEvent = "Created", nextEvent = "Activated")
-	public UserDTO activateUser(UserDTO userDTO) {
-		System.out.println("activateUser: Entering: " + userDTO);
-		return userDTO;
+	@SagaSideStep(name = "UserCreated", previousEvent = "Created", finalOutcome = "MailSent")
+	public void sendVerificationMail(UserDTO userDTO) {
+		System.out.println("sendVerificationMail: Entering: " + userDTO);
+	}
+
+	@SagaEnd(name = "UserCreated", previousEvent = "Created", finalOutcome = "Complete")
+	public void completeUserCreation(UserDTO userDTO) {
+		System.out.println("completeUserCreation: Entering: " + userDTO);
 	}
 }
