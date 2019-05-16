@@ -18,7 +18,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
 import com.github.richygreat.springsagaevent.annotation.EventPayload;
+import com.github.richygreat.springsagaevent.annotation.SagaCompensationBranchStart;
+import com.github.richygreat.springsagaevent.annotation.SagaCompensationEnd;
+import com.github.richygreat.springsagaevent.annotation.SagaEnd;
 import com.github.richygreat.springsagaevent.annotation.SagaEventHandler;
+import com.github.richygreat.springsagaevent.annotation.SagaSideStep;
 import com.github.richygreat.springsagaevent.annotation.SagaTransition;
 import com.github.richygreat.springsagaevent.listener.SagaEventKafkaContainerCreator;
 
@@ -48,6 +52,10 @@ public final class SagaEventHandlerBinder {
 		}
 
 		bindSagaTransition(sagaEventHandlerBeans);
+		bindSagaEnd(sagaEventHandlerBeans);
+		bindSagaCompensationBranchStart(sagaEventHandlerBeans);
+		bindSagaSideStep(sagaEventHandlerBeans);
+		bindSagaCompensationEnd(sagaEventHandlerBeans);
 
 		SagaEventKafkaContainerCreator containerCreator = new SagaEventKafkaContainerCreator(sagaKafkaTemplate,
 				sagaEventsKafkaProperties);
@@ -57,19 +65,84 @@ public final class SagaEventHandlerBinder {
 	private void bindSagaTransition(Collection<Object> beans) {
 		Consumer<Object> kafkaBindingConsumer = new KafkaSagaEventBindingConsumer(sagaEventHandlerMap,
 				(bean, method) -> {
-					SagaTransition sagaTransition = AnnotationUtils.findAnnotation(method, SagaTransition.class);
-					if (sagaTransition != null) {
-						Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
-						Assert.isTrue(method.getParameterTypes()[0].isAnnotationPresent(EventPayload.class),
-								INVALID_BINDING_METHOD_ARGS_TYPE);
-						Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
-						String sagaEvent = sagaTransition.name() + "." + sagaTransition.previousEvent();
-						return new SagaEventHandlerType(sagaEvent, bean, method, sagaTransition,
+					SagaTransition ann = AnnotationUtils.findAnnotation(method, SagaTransition.class);
+					if (ann != null) {
+						validate(method);
+						String sagaEvent = ann.name() + "." + ann.previousEvent();
+						return new SagaEventHandlerType(sagaEvent, bean, method, ann,
 								method.getParameterTypes()[0].getAnnotation(EventPayload.class));
 					}
 					return null;
 				});
 		beans.forEach(kafkaBindingConsumer);
+	}
+
+	private void bindSagaEnd(Collection<Object> beans) {
+		Consumer<Object> kafkaBindingConsumer = new KafkaSagaEventBindingConsumer(sagaEventHandlerMap,
+				(bean, method) -> {
+					SagaEnd ann = AnnotationUtils.findAnnotation(method, SagaEnd.class);
+					if (ann != null) {
+						validate(method);
+						String sagaEvent = ann.name() + "." + ann.previousEvent();
+						return new SagaEventHandlerType(sagaEvent, bean, method, ann,
+								method.getParameterTypes()[0].getAnnotation(EventPayload.class));
+					}
+					return null;
+				});
+		beans.forEach(kafkaBindingConsumer);
+	}
+
+	private void bindSagaCompensationBranchStart(Collection<Object> beans) {
+		Consumer<Object> kafkaBindingConsumer = new KafkaSagaEventBindingConsumer(sagaEventHandlerMap,
+				(bean, method) -> {
+					SagaCompensationBranchStart ann = AnnotationUtils.findAnnotation(method,
+							SagaCompensationBranchStart.class);
+					if (ann != null) {
+						validate(method);
+						String sagaEvent = ann.branchoutSagaName() + "." + ann.branchoutEvent();
+						return new SagaEventHandlerType(sagaEvent, bean, method, ann,
+								method.getParameterTypes()[0].getAnnotation(EventPayload.class));
+					}
+					return null;
+				});
+		beans.forEach(kafkaBindingConsumer);
+	}
+
+	private void bindSagaSideStep(Collection<Object> beans) {
+		Consumer<Object> kafkaBindingConsumer = new KafkaSagaEventBindingConsumer(sagaEventHandlerMap,
+				(bean, method) -> {
+					SagaSideStep ann = AnnotationUtils.findAnnotation(method, SagaSideStep.class);
+					if (ann != null) {
+						validate(method);
+						String sagaEvent = ann.name() + "." + ann.previousEvent();
+						return new SagaEventHandlerType(sagaEvent, bean, method, ann,
+								method.getParameterTypes()[0].getAnnotation(EventPayload.class));
+					}
+					return null;
+				});
+		beans.forEach(kafkaBindingConsumer);
+	}
+
+	private void bindSagaCompensationEnd(Collection<Object> beans) {
+		Consumer<Object> kafkaBindingConsumer = new KafkaSagaEventBindingConsumer(sagaEventHandlerMap,
+				(bean, method) -> {
+					SagaCompensationEnd ann = AnnotationUtils.findAnnotation(method, SagaCompensationEnd.class);
+					if (ann != null) {
+						validate(method);
+						String sagaEvent = ann.name() + "." + ann.previousEvent();
+						return new SagaEventHandlerType(sagaEvent, bean, method, ann,
+								method.getParameterTypes()[0].getAnnotation(EventPayload.class));
+					}
+					return null;
+				});
+		beans.forEach(kafkaBindingConsumer);
+	}
+
+	private void validate(Method method) {
+		Assert.isTrue(method.getParameterTypes().length == 1, INVALID_BINDING_METHOD_ARGS_LENGTH);
+		Assert.isTrue(method.getParameterTypes()[0].isAnnotationPresent(EventPayload.class),
+				INVALID_BINDING_METHOD_ARGS_TYPE);
+		Assert.isTrue(!method.getReturnType().equals(Void.TYPE), INVALID_BINDING_METHOD_RET_TYPE_VOID);
 	}
 
 	public static class KafkaSagaEventBindingConsumer implements Consumer<Object> {

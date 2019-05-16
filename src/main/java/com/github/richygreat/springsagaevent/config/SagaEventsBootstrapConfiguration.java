@@ -6,6 +6,8 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
+import com.github.richygreat.springsagaevent.annotation.SagaStartAspect;
+
 @Configuration
 public class SagaEventsBootstrapConfiguration {
 	@Bean
@@ -22,8 +24,14 @@ public class SagaEventsBootstrapConfiguration {
 	}
 
 	@Bean
-	public SagaKafkaConsumerRegistryBean sagaKafkaConsumerRegistryBean(
-			SagaEventsKafkaProperties sagaEventsKafkaProperties, KafkaTemplate<String, String> sagaKafkaTemplate) {
-		return new SagaKafkaConsumerRegistryBean(sagaEventsKafkaProperties, sagaKafkaTemplate);
+	public SagaKafkaConsumerRegistryBean sagaKafkaConsumerRegistryBean(KafkaTemplate<String, String> sagaKafkaTemplate,
+			SagaEventsKafkaProperties sagaEventsKafkaProperties) {
+		return new SagaKafkaConsumerRegistryBean(sagaKafkaTemplate, sagaEventsKafkaProperties);
+	}
+
+	@Bean
+	public SagaStartAspect sagaStartAspect(KafkaTemplate<String, String> sagaKafkaTemplate,
+			SagaEventsKafkaProperties sagaEventsKafkaProperties) {
+		return new SagaStartAspect(sagaKafkaTemplate, sagaEventsKafkaProperties);
 	}
 }

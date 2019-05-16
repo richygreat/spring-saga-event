@@ -2,7 +2,7 @@ package com.github.richygreat.springsagaevent.model;
 
 import com.github.richygreat.springsagaevent.annotation.EventPayload;
 
-@EventPayload(topic = "user", owned = true)
+@EventPayload(topic = "user", owned = true, keyField = "name")
 public class UserDTO {
 	private String id;
 	private String name;

@@ -33,7 +33,7 @@ public class SagaEventKafkaContainerCreator implements BiConsumer<EventPayload, 
 				sagaEventsKafkaProperties.consumerProperties());
 		ConcurrentMessageListenerContainer<String, String> consumer = new ConcurrentMessageListenerContainer<>(
 				consumerFactory, containerProperties);
-		consumer.setConcurrency(5);
+		consumer.setConcurrency(5);// configurable and equals (total_partitions/microservice_replicas)
 		consumer.start();
 	}
 }

@@ -11,10 +11,10 @@ public class SagaKafkaConsumerRegistryBean implements ApplicationContextAware, S
 	private final SagaEventsKafkaProperties sagaEventsKafkaProperties;
 	private ApplicationContext applicationContext;
 
-	public SagaKafkaConsumerRegistryBean(SagaEventsKafkaProperties sagaEventsKafkaProperties,
-			KafkaTemplate<String, String> sagaKafkaTemplate) {
-		this.sagaEventsKafkaProperties = sagaEventsKafkaProperties;
+	public SagaKafkaConsumerRegistryBean(KafkaTemplate<String, String> sagaKafkaTemplate,
+			SagaEventsKafkaProperties sagaEventsKafkaProperties) {
 		this.sagaKafkaTemplate = sagaKafkaTemplate;
+		this.sagaEventsKafkaProperties = sagaEventsKafkaProperties;
 	}
 
 	@Override

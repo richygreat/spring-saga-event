@@ -11,4 +11,6 @@ public @interface EventPayload {
 	String topic();
 
 	boolean owned() default false;
+
+	String keyField() default "";
 }
