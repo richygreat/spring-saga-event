@@ -1,6 +1,7 @@
 package com.github.richygreat.springsagaevent.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -18,6 +19,18 @@ public class SagaEventsKafkaProperties {
 
 	@Value("${saga.kafka.resources-prefix:}")
 	private String kafkaResourcesPrefix;
+
+	@Value("${spring.kafka.bootstrap-servers:localhost:9092}")
+	private List<String> bootstrapServers;
+
+	@Value("${spring.kafka.properties.security.protocol:}")
+	private String securityProtocol;
+
+	@Value("${spring.kafka.properties.sasl.mechanism:}")
+	private String saslMechanism;
+
+	@Value("${spring.kafka.properties.sasl.jaas.config:}")
+	private String jaasConfig;
 
 	@PostConstruct
 	public void init() {
@@ -61,24 +74,15 @@ public class SagaEventsKafkaProperties {
 	}
 
 	private void populateKafkaProperties(Map<String, Object> props) {
-		String servers = toConnectionString(new String[] { "velomobile-01.srvs.cloudkafka.com:9094",
-				"velomobile-02.srvs.cloudkafka.com:9094", "velomobile-03.srvs.cloudkafka.com:9094" }, "9094");
-		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
-		props.put("security.protocol", "SASL_SSL");
-		props.put("sasl.mechanism", "SCRAM-SHA-256");
-		props.put("sasl.jaas.config",
-				"org.apache.kafka.common.security.scram.ScramLoginModule required username=\"li5jiphz\" password=\"nqa9_PsDVN5Szgm6cT7rZwNnTyOfZei6\";");
-	}
-
-	private String toConnectionString(String[] hosts, String defaultPort) {
-		String[] fullyFormattedHosts = new String[hosts.length];
-		for (int i = 0; i < hosts.length; i++) {
-			if (hosts[i].contains(":") || StringUtils.isEmpty(defaultPort)) {
-				fullyFormattedHosts[i] = hosts[i];
-			} else {
-				fullyFormattedHosts[i] = hosts[i] + ":" + defaultPort;
-			}
+		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+		if (StringUtils.hasText(securityProtocol)) {
+			props.put("security.protocol", securityProtocol);
 		}
-		return StringUtils.arrayToCommaDelimitedString(fullyFormattedHosts);
+		if (StringUtils.hasText(saslMechanism)) {
+			props.put("sasl.mechanism", saslMechanism);
+		}
+		if (StringUtils.hasText(jaasConfig)) {
+			props.put("sasl.jaas.config", jaasConfig);
+		}
 	}
 }

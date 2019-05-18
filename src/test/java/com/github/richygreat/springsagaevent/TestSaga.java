@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.richygreat.springsagaevent.annotation.EnableSagaEvents;
+import com.github.richygreat.springsagaevent.service.TransactionService;
 import com.github.richygreat.springsagaevent.service.UserService;
 
 @SpringBootTest(classes = TestSaga.TestConfig.class)
@@ -19,11 +20,16 @@ public class TestSaga {
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private TransactionService transactionService;
+
 	@Test
 	public void test() throws JsonProcessingException, InterruptedException {
 		userService.requestUserCreation();
 
-		Thread.sleep(55000);
+		transactionService.request();
+
+		Thread.sleep(30000);
 	}
 
 	@Configuration

@@ -1,6 +1,13 @@
 spring.application.name: micro-test
 saga:
   kafka.resources-prefix: li5jiphz
+spring.kafka:
+  bootstrap-servers: velomobile-01.srvs.cloudkafka.com:9094,velomobile-02.srvs.cloudkafka.com:9094,velomobile-03.srvs.cloudkafka.com:9094
+  properties:
+    security.protocol: SASL_SSL
+    sasl:
+      mechanism: SCRAM-SHA-256
+      jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="li5jiphz" password="nqa9_PsDVN5Szgm6cT7rZwNnTyOfZei6";
 logging:
   level:
     org.apache.kafka: ERROR
